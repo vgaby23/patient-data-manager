@@ -1,12 +1,20 @@
 from conn.connection import create_connection
-from field import ask_data
-import os
+from func.field import ask_data
+from tabulate import tabulate
 
-conn, cursor = create_connection()
+conn = create_connection()
+cursor = conn.cursor()
+def connect(query, cursor):
+    cursor.execute(query)
+
+    rows = cursor.fetchall()
+    headers = cursor.column_names
+    
+    return rows, headers
 
 def retrieve_data(cursor, mandatory_data, limit):
     
-    where_mandatory_string = f"patient_name like '%{mandatory_data['patient_last_name']}%' and gender == {mandatory_data['gender']} and '%{mandatory_data['patient_first_name']}%'"
+    where_mandatory_string = f"(last_name like '%{mandatory_data['patient_last_name']}%' or first_name like '%{mandatory_data['patient_first_name']}%')' "
 
     if limit == 'all':
         limit_string = ''
@@ -14,30 +22,50 @@ def retrieve_data(cursor, mandatory_data, limit):
         limit_string = f'LIMIT{int(limit)}'
     query = f'''
             SELECT *
-            FROM patient 
+            FROM patients
             WHERE {where_mandatory_string}
             {limit_string}
             '''
 
-    cursor.execute(query)
+    rows, headers = connect(query, cursor)
 
-    rows = cursor.fetchall()
-
-    return rows
+    return rows, headers
 
 
 def process():
+    cursor.execute("USE hospital_manager")
+    
     mandatory_data, limit = ask_data('read')
 
-    data_rows = retrieve_data(cursor, mandatory_data, limit)
+    rows, headers = retrieve_data(cursor, mandatory_data, limit)
 
     print("PATIENT'S DATA SEARCH RESULT\n")
 
-    for row in data_rows:
-        print(row)
+    print(tabulate(rows, headers=headers, tablefmt="grid"))
 
     retry = input("Would you like to search for another patient's data?(Y/n): ")
 
     if retry == 'Y':
         process()
+
+def access_appointments(patient_id):
+    query = f'''
+    SELECT appointment_date, appointment_time, (d.first_name + ' ' + df.last_name) as doctor_name, specialization, reason_for_visit, hospital, branch, status
+    from appointments a
+    join doctors d on a.doctor_id = d.doctor_id
+    where patient_id = {patient_id}
+    '''
+    rows, headers = connect(query, cursor)
+    print(tabulate(rows, headers=headers, tablefmt="grid"))
     
+def data_to_check():
+    option_ = None
+    while option_ != 'n':
+        patient_id = input("Which patient_id would you like to check? Type 'n' if you want to go back to the main menu")
+        print('Patient Menu:')
+        print('1. Appointments')
+        print('2. Bills')
+        option_ = int(input('Which data would you like to access?(Type number only)'))
+        
+        if option_ == 1:
+            access_appointments(patient_id)

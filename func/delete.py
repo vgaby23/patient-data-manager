@@ -1,8 +1,9 @@
 from conn.connection import create_connection
-from field import ask_data
-from read import retrieve_data
+from func.field import ask_data
+from func.read import retrieve_data
 
-conn, cursor = create_connection()
+conn = create_connection()
+cursor = conn.cursor()
 
 def delete_data(cursor, mandatory_data):
 
@@ -21,6 +22,7 @@ def delete_data(cursor, mandatory_data):
     return rows_deleted
 
 def process():
+    cursor.execute("USE hospital_manager")
 
     confirmation = 'n'
     while confirmation != 'Y':

@@ -26,14 +26,12 @@ def ask_data(process, limit = None):
     print_menu_line('=')
     patient_first_name = mandatory_field("patient's first name")
     patient_last_name = mandatory_field("patient's last name")
-    gender = mandatory_field("patient's gender (M/F)")
 
     # Ask if user wants to see all data
     if process == 'read':
         limit = input('How many rows of data would you like to see?(write numbers or all): ')
 
     mandatory_data = {"patient_first_name":patient_first_name,
-                        "patient_last_name":patient_last_name,
-                        "gender": gender}
+                        "patient_last_name":patient_last_name}
 
     return mandatory_data, limit

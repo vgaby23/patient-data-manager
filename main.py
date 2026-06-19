@@ -1,6 +1,5 @@
-import conn.connection as connection
-import sys
-import os
+# import conn.connection as connection
+import subprocess
 
 from config_dir import state
 import func.analytics as an
@@ -8,6 +7,7 @@ import func.create as cr
 import func.delete as de
 import func.read as re
 import func.update as up
+from database.execute import execute_all
 
 
 MENU_WIDTH = 40
@@ -37,7 +37,7 @@ def main_menu(staff_name):
         "6 - Exit",
         " "
     ]
-    os.system('clear')
+    subprocess.run(["clear"])
 
     # 3. Print the top border
     print("╔" + "═" * MENU_WIDTH + "╗")
@@ -53,10 +53,15 @@ def main_menu(staff_name):
     option = int(input("\nEnter your choice: "))
     return option
 
+# Initiate database and table creation
+execute_all()
+
+# subprocess.run(["clear"])
 
 staff_name = input("Hello, Welcome to Patient Data Manager! \nPlease input your name before proceeding: ")      
 
 user_choice = None
+# subprocess.run(["clear"])
 
 while user_choice != 6:
     user_choice = main_menu(staff_name)

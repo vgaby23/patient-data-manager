@@ -8,23 +8,19 @@ def create_connection():
         # Establish connection session
         conn = mysql.connector.connect(
             host = "localhost",
-            user = "vanessagabriela",
-            password = "Moch1998",
-            database = "patient"
+            user = "root",
+            password = "vgaby_VG23",
+            use_pure = True
         )
 
         if conn.is_connected():
-            print("Successfully connected to Database")
-
-            # Create cursor to execute SQL statement
-            cursor = conn.cursor()
-        
-        return conn, cursor
+        #     cursor = conn.cursor()
+            return conn
     
     except Error as e:
         print(f"Error while connectin to Database: {e}")
 
-        return None, None
+        return None
 
 
 def close_connection(conn, cursor):
@@ -33,4 +29,3 @@ def close_connection(conn, cursor):
         cursor.close()
         conn.close()
         print("Connection is Closed")
-
