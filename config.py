@@ -1,0 +1,1 @@
+MENU_WIDTH = 40
