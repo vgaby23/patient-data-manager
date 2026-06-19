@@ -1,9 +1,9 @@
 import os
+import config
 
-MENU_WIDTH = 40
 
 def print_menu_line(sentence):
-    print(f"║{sentence:^{MENU_WIDTH}}║")
+    print(f"║{sentence:^{config.MENU_WIDTH}}║")
 
 def mandatory_field(input_sentence):
     while True:

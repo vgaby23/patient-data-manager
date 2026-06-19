@@ -1,9 +1,12 @@
 from conn.connection import create_connection
 from func.field import ask_data
+from basic_func import main_menu
 from tabulate import tabulate
+import config
 
 conn = create_connection()
 cursor = conn.cursor()
+
 def connect(query, cursor):
     cursor.execute(query)
 
@@ -12,27 +15,50 @@ def connect(query, cursor):
     
     return rows, headers
 
-def retrieve_data(cursor, mandatory_data, limit):
+class read_actions:
+
+    def retrieve_data(cursor, mandatory_data, limit):
+        
+        where_mandatory_string = f"(last_name like '%{mandatory_data['patient_last_name']}%' or first_name like '%{mandatory_data['patient_first_name']}%')' "
+
+        if limit == 'all':
+            limit_string = ''
+        else:
+            limit_string = f'LIMIT{int(limit)}'
+        query = f'''
+                SELECT *
+                FROM patients
+                WHERE {where_mandatory_string}
+                {limit_string}
+                '''
+
+        rows, headers = connect(query, cursor)
+
+        return rows, headers
+
+def print_menu(staff_name):
+    menu_lines = [
+        f"Hello {staff_name.upper()}!",
+        "=" * config.MENU_WIDTH,
+        " ",
+        "Welcome to Patient Data Manager",
+        " ",
+        "=" * config.MENU_WIDTH,
+        " ",
+        "How would you like to proceed?",
+        " ",
+        "=" * config.MENU_WIDTH,
+        " ",
+        "1 - Check another patient data",
+        "2 - Back to main menu",
+        " "
+    ]
+
+    return main_menu(menu_lines)
     
-    where_mandatory_string = f"(last_name like '%{mandatory_data['patient_last_name']}%' or first_name like '%{mandatory_data['patient_first_name']}%')' "
-
-    if limit == 'all':
-        limit_string = ''
-    else:
-        limit_string = f'LIMIT{int(limit)}'
-    query = f'''
-            SELECT *
-            FROM patients
-            WHERE {where_mandatory_string}
-            {limit_string}
-            '''
-
-    rows, headers = connect(query, cursor)
-
-    return rows, headers
 
 
-def process():
+def process(staff_name):
     cursor.execute("USE hospital_manager")
     
     mandatory_data, limit = ask_data('read')
@@ -43,9 +69,9 @@ def process():
 
     print(tabulate(rows, headers=headers, tablefmt="grid"))
 
-    retry = input("Would you like to search for another patient's data?(Y/n): ")
+    option = print_menu(staff_name)
 
-    if retry == 'Y':
+    if option == '1':
         process()
 
 def access_appointments(patient_id):
