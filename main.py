@@ -1,63 +1,51 @@
-# import conn.connection as connection
+from conn.connection import create_connection
 import subprocess
+import sys
+from crud.patient_module import patient, appointment
+from dotenv import load_dotenv, set_key
+from crud import menu_details
+from database.execute import Database
 
-from config_dir import state
-import func.analytics as an
-import func.create as cr
-import func.delete as de
-import func.read as re
-import func.update as up
-from basic_func import main_menu
-from database.execute import execute_all
+load_dotenv()
 
-MENU_WIDTH = 40
+def main():
 
-def print_menu_line(sentence):
-    print(f"║{sentence:^{MENU_WIDTH}}║")
+    #  Initiate database and table creation
+    Database.execute_create_all()
 
-# Initiate database and table creation
-# execute_all()
+    conn = create_connection()
+    # Start Menu
+    staff_name = input("Hello, Welcome to Patient Data Manager! \nPlease input your name before proceeding: ")      
+    set_key(".env", "STAFF_NAME", staff_name)
+    user_choice = None
 
-# Start Menu
-staff_name = input("Hello, Welcome to Patient Data Manager! \nPlease input your name before proceeding: ")      
+    # subprocess.run(["clear"])
 
-menu_lines = [
-    f"Hello {staff_name.upper()}!",
-    "=" * MENU_WIDTH,
-    " ",
-    "Welcome to Patient Data Manager",
-    " ",
-    "=" * MENU_WIDTH,
-    " ",
-    "Main Menu",
-    " ",
-    "=" * MENU_WIDTH,
-    " ",
-    "1 - Create new patient data",
-    "2 - Find patient data",
-    "3 - Update patient data",
-    "4 - Delete patient data",
-    "5 - Analytics",
-    "6 - Exit",
-    " "
-]
+  
+    while True:
+        user_choice = menu_details.main_menu(menu_details.main_menu_lines)
+        try:
+            if user_choice == '1':
+                patient.main(conn)
+            elif user_choice == '2':
+                appointment.main(conn)
+            # elif user_choice == 3: 
+            #     menu_details.main_menu(menu_details.bill_menu_lines)
+            # elif user_choice == 4:
+            #     menu_details.main_menu(menu_details.treatment_menu_lines)
+            # elif user_choice == 5:
+            #     menu_details.main_menu(menu_details.analytics_menu_lines)
+            elif user_choice == '6':
+                print('Goodbye!')
+                sys.exit(0)
+                exit
+        except ValueError as ve:
+            print(f'⚠️ Input Error: {ve}')
+        except KeyError as ke:
+            print(ke)
+        except Exception as e:
+            raise e
+            # print(f'An unexpected error occured: {e}')
 
-user_choice = None
-subprocess.run(["clear"])
-
-user_choice = main_menu(menu_lines)
-
-try:
-    if user_choice == '1':
-        first_name = input('Enter first name: ')
-        last_name = input('Enter last name: ')
-        gender = input('Enter gender (F/M): ')
-
-    elif user_choice == '2':
-        re.process()
-    elif user_choice == 3:
-        pass
-    elif user_choice == 4:
-        de.process(staff_name)
-    elif user_choice == 5:
-        pass
+if __name__ == '__main__':
+    main()
