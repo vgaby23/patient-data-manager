@@ -21,8 +21,8 @@ main_menu_lines = [
     " ",
     "1 - Patient Data",
     "2 - Appointments",
-    "3 - Bill",
-    "4 - Treatments",
+    "3 - Treatments",
+    "4 - Bill",
     "5 - Analytics",
     "6 - Exit",
     " "
@@ -126,11 +126,27 @@ treatment_menu_lines = [
         " ",
         "=" * menu_width,
         " ",
-        "1 - Create new treatment",
+        "1 - Scheduled patient's treatment",
         "2 - Check patient's treatment",
-        "3 - Update patient's treatment",
-        "4 - Delete patient's treatment",
-        "5 - Back to main menu",
+        "3 - Delete scheduled treatment",
+        "4 - Back to main menu",
+        " "
+    ]
+bill_menu_lines = [
+        f"Hello {staff_name.upper()}!",
+        "=" * menu_width,
+        " ",
+        "Welcome to Patient Data Manager",
+        " ",
+        "=" * menu_width,
+        " ",
+        "How would you like to proceed?",
+        " ",
+        "=" * menu_width,
+        " ",
+        "1 - Print Bill",
+        "2 - Cancel Bill",
+        "3 - Back to main menu",
         " "
     ]
 analytics_menu_lines = [

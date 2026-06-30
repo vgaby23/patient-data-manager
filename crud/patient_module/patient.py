@@ -132,7 +132,7 @@ class CRUDPatient:
         valid_ids = [str(patient[0]) for patient in patients]
 
         while True:
-            update_id = input('\nEnter patient ID to update (or type "q" to cancel): ').strip()
+            update_id = mandatory_field('patient ID to update (or type "q" to cancel): ').strip()
             
             if update_id.lower() == 'q':
                 print("Update cancelled.")
@@ -159,7 +159,7 @@ class CRUDPatient:
                 continue
         
             for val in opt_list:
-                val_to_update = input(f'Enter new {map_[val].replace('_',' ').capitalize()}: ')
+                val_to_update = mandatory_field(f'new {map_[val].replace('_',' ').capitalize()}: ')
                 update_dict[map_[val]] = val_to_update
             
             break
@@ -191,7 +191,7 @@ class CRUDPatient:
         valid_ids = [str(patient[0]) for patient in patients]
 
         while True:
-            patient_id = input('\nEnter patient ID to delete (or type "q" to cancel): ').strip()
+            patient_id = mandatory_field('patient ID to delete (or type "q" to cancel): ').strip()
             
             if patient_id.lower() == 'q':
                 print("Update cancelled.")
@@ -207,7 +207,7 @@ class CRUDPatient:
         while True:
             print(f'Are you sure, you want to delete data of patient ID {patient_id}?')
             print('This action is irreversible')
-            option = input('(Yes/No):')
+            option = mandatory_field('(Yes/No):')
             
             if option.lower() in ('no','n'):
                 print('\nReturning to the previous menu..')
@@ -259,7 +259,7 @@ def main(conn):
                 conn.rollback()
             input("\nPress Enter to continue...")
         
-    cursor.close()
-    conn.close()
+    # cursor.close()
+    # conn.close()
 
 

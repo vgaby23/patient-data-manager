@@ -277,5 +277,5 @@ def main(conn):
                 conn.rollback()
             input("\nPress Enter to continue...")
         
-    cursor.close()
-    conn.close()
+    # cursor.close()
+    # conn.close()

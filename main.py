@@ -1,7 +1,7 @@
 from conn.connection import create_connection
 import subprocess
 import sys
-from crud.patient_module import patient, appointment
+from crud.patient_module import patient, appointment, treatment, bill
 from dotenv import load_dotenv, set_key
 from crud import menu_details
 from database.execute import Database
@@ -29,16 +29,18 @@ def main():
                 patient.main(conn)
             elif user_choice == '2':
                 appointment.main(conn)
-            # elif user_choice == 3: 
-            #     menu_details.main_menu(menu_details.bill_menu_lines)
-            # elif user_choice == 4:
-            #     menu_details.main_menu(menu_details.treatment_menu_lines)
+            elif user_choice == '3': 
+                treatment.main(conn)
+            elif user_choice == '4':
+                bill.main(conn)
             # elif user_choice == 5:
             #     menu_details.main_menu(menu_details.analytics_menu_lines)
             elif user_choice == '6':
                 print('Goodbye!')
+                conn.close()
                 sys.exit(0)
                 exit
+                
         except ValueError as ve:
             print(f'⚠️ Input Error: {ve}')
         except KeyError as ke:
