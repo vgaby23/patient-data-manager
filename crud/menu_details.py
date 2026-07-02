@@ -163,7 +163,8 @@ analytics_menu_lines = [
         "1 - Operational & Scheduling",
         "2 - Financial & Revenue",
         "3 - Patient Demographics",
-        "4 - Back to main menu",
+        "4 - Descriptive Analytics",
+        "5 - Back to main menu",
         " "
         ]
 
