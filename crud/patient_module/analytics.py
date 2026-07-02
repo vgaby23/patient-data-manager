@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import subprocess
 from crud import menu_details
 from sqlalchemy import text 
+from crud.patient_module.input import mandatory_field
 
 # Run SQL query into dataframe
 def run_sql(query, conn):
@@ -260,6 +261,75 @@ class Analytics:
         plt.grid(axis='y', linestyle='--', alpha=0.4)
         plt.tight_layout()
         plt.show()
+    
+    def descriptive(conn):
+        """
+        Function to calculate and display selected descriptive statistics 
+        metrics for a given column based on user input.
+        """
+
+        query = """
+                select date_format(now(), '%Y') - date_format(date_of_birth, '%Y') as age, t.cost as revenue
+                from patients p 
+                join appointments a on p.patient_id = a.patient_id
+                join treatments t on a.appointment_id = t.appointment_id
+                where a.status not in ('No-Show', 'Cancelled')
+                """
+        
+        df = run_sql(query, conn)
+        opt_list = {'1': 'Age', '2': 'Revenue'}
+        while True:
+                print('Available column:')
+                for key, value in opt_list.items():
+                    print(f'{key}: {value}')
+                
+                column_input = mandatory_field('Choose column to analyze(1-2): ').strip()
+                if column_input not in ('1', '2'):
+                    print("\033[31m❌ Value is invalid! Choose value between 1 to 2\033[0m")
+                    continue
+                else:
+                    break
+        column_name = opt_list[column_input].lower()
+        
+        print("\nAvailable metrics: mean, median, min, max, std, sum")
+        user_metric = input("👉 Type the metric you want to compute  : ")
+        
+        # Calculate metric based on user selection
+        if user_metric in ['mean', 'average']:
+            result = df[column_name].mean()
+            label = "Average (Mean)"
+        elif user_metric == 'median':
+            result = df[column_name].median()
+            label = "Middle Value (Median)"
+        elif user_metric == 'min':
+            result = df[column_name].min()
+            label = "Minimum Value (Min)"
+        elif user_metric == 'max':
+            result = df[column_name].max()
+            label = "Maximum Value (Max)"
+        elif user_metric in ['std', 'standard deviation']:
+            result = df[column_name].std()
+            label = "Standard Deviation"
+        elif user_metric in ['sum', 'total']:
+            result = df[column_name].sum()
+            label = "Total (Sum)"
+        else:
+            print(f"\n❌ Error: Metric '{user_metric}' is unrecognized. Please choose a valid option (mean, median, etc.).\n")
+            return
+
+        print("\n" + "="*45)
+        print("🛠️  INTERACTIVE STATISTICAL ANALYSIS MENU")
+        print("="*45)
+
+
+        # Print out the results beautifully formatted
+        print(f"\n======================================")
+        print(f"📊 DESCRIPTIVE STATISTICS REPORT")
+        print(f"======================================")
+        print(f"Selected Column : '{column_name}'")
+        print(f"{label.ljust(22)}: {result:.2f}")
+        print(f"======================================\n")
+
 
 def main(conn):
     
@@ -276,7 +346,9 @@ def main(conn):
                 Analytics.financial_revenue(conn)
             elif option == '3': # Patient Demographics
                 Analytics.demographics(conn)
-            elif option == '4': # Back to main menu
+            elif option == '4':  # Descriptive Analytics
+                Analytics.descriptive(conn)
+            elif option == '5': # Back to main menu
                 print('Returning to the main menu...')
                 break
             else:
