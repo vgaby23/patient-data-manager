@@ -12,7 +12,12 @@ def main():
 
     #  Initiate database and table creation
     Database.execute_create_all()
-
+    try:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
+        print("Requirements installed successfully!")
+    except subprocess.CalledProcessError as e:
+        print(f"An error occurred during installation: {e}")
+        
     subprocess.run(["clear"])
 
     conn = create_connection()
