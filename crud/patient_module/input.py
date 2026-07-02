@@ -1,3 +1,4 @@
+# Making sure the input field has value
 def mandatory_field(input_sentence):
     while True:
         input_field = input(f"Enter {input_sentence}: ").strip()

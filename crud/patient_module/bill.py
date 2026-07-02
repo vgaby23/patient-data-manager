@@ -1,37 +1,33 @@
-
 from tabulate import tabulate
 import subprocess
 from crud.patient_module.input import mandatory_field
 from crud import menu_details
 from crud.menu_details import menu_width
+from sqlalchemy import text
 
+def execute_db_action(conn, query, params=None, action='read'):
+    #Establish connection
+    conn.execute(text("USE hospital_manager"))
+    result = conn.execute(text(query), params or {})
 
-def execute_db_action(cursor, query, params=None, action='read'):
-    """Handles all database execution safely using parameterized queries."""
-    cursor.execute("USE hospital_manager")
-    
-    cursor.execute(query, params or ())
-
+     # Breakdown how to fetch the data based on the type of action
     if action == 'read':
-        rows = cursor.fetchall()
-        headers = cursor.column_names
+        rows = result.fetchall()
+        headers = list(result.keys())
         return rows, headers
     
     elif action in ('update', 'delete'):
-        if cursor.rowcount == 0:
+        if result.rowcount == 0:
             print("\nWarning: No bill data was modified. Check your criteria.")
         else:
-            print(f"\nSuccess! Modified {cursor.rowcount} bill record(s).")
-        return cursor.rowcount
+            print(f"\nSuccess! Modified {result.rowcount} bill record(s).")
+        return result.rowcount
+
+
 class CRUDBill:
 
     @staticmethod
-    def get_bill(cursor):
-
-        subprocess.run(["clear"])
-
-        print("\033[3mFill in patient's data below\033[0m")
-        print()
+    def get_bill(conn):
 
         query = '''
                 select b.patient_id, concat(p.first_name, ' ' , p.last_name) as patients_name, b.bill_id, t.treatment_type, amount
@@ -41,11 +37,10 @@ class CRUDBill:
                 left join appointments a on a.appointment_id = t.appointment_id
                 where payment_status = 'Pending' and status = 'Completed' and payment_method != 'Insurance'
                 '''
-        # params = (f"%{patient_last_name}%", f"%{patient_first_name}%")
         
-        rows, headers = execute_db_action(cursor, query)
+        rows, headers = execute_db_action(conn, query)
 
-        print("\BILL'S DATA SEARCH RESULT\n")
+        print("\nBILL'S DATA SEARCH RESULT\n")
         if rows:
             print(tabulate(rows, headers=headers, tablefmt="grid"))
         else:
@@ -54,15 +49,17 @@ class CRUDBill:
         return rows
 
     @staticmethod
-    def print_bill(cursor, rows):
+    def print_bill(conn, rows):
+        
         query = '''
                 select concat(p.first_name, ' ' , p.last_name) as patient_name, treatment_type, description, cost, amount, bill_date
                 from bills b
                 left join patients p on b.patient_id = p.patient_id
                 left join treatments t on b.treatment_id = t.treatment_id
-                where bill_id = %s
+                where bill_id = :bill_id
                 '''
         
+        # Bill ID validation
         while True:
             bill_id = mandatory_field('bill ID: ')
             valid_ids = [str(bill[2]) for bill in rows]
@@ -71,11 +68,10 @@ class CRUDBill:
                 break
 
             print(f"\033[31m❌ Error: ID {bill_id} is not in the search results above. Please choose a visible ID.\033[0m")
-            continue
 
-        params = (bill_id,)
-        rows, headers = execute_db_action(cursor, query, params)
-        result = next((dict(zip(headers, row)) for row in rows), None)
+        params = {"bill_id": bill_id}
+        rows_data, headers = execute_db_action(conn, query, params)
+        result = next((dict(zip(headers, row)) for row in rows_data), None)
 
         if not result:
             print(f"\033[31m❌ Error: Bill details could not be retrieved from the database.\033[0m")
@@ -86,13 +82,12 @@ class CRUDBill:
         cost_val = int(result['cost']) if result['cost'] else 0
         total_val = cost_val + 200 + 10
 
-        #Format of the bill
+        # Format of the printed bill
         item_1 = f"1. {result['treatment_type']}".ljust(inner_width - 8) + f"${cost_val}".rjust(8)
         item_2 = "2. Consultation".ljust(inner_width - 8) + "$200".rjust(8)
         item_3 = "3. Admin Fee".ljust(inner_width - 8) + "$10".rjust(8)
         total_line = "TOTAL".ljust(inner_width - 8) + f"${total_val}".rjust(8)
 
-        # 4. Construct the data layout with fixed 2-space side padding built-in
         data = [
             f"║{' ':^{menu_width}}║",
             f"║{'BILL':^{menu_width}}║",
@@ -111,22 +106,22 @@ class CRUDBill:
             f"║  {total_line:<{inner_width}}  ║",
             f"║{' ':^{menu_width}}║"
         ]
-
-        # 5. Print out the bill frames
+        subprocess.run(["clear"])
+        
         print(f"╔{'═' * menu_width}╗")
         for line in data:
             print(line)
         print(f"╚{'═' * menu_width}╝")
 
+        
         query_update_status = '''UPDATE bills
                                  SET payment_status = 'Paid'
-                                 WHERE bill_id = %s'''
+                                 WHERE bill_id = :bill_id'''
         
-        params = (bill_id,)
+        execute_db_action(conn, query_update_status, params, 'update')
 
-        execute_db_action(cursor, query_update_status, params, 'update')
-
-    def cancel_bill(cursor, rows):
+    @staticmethod
+    def cancel_bill(conn, rows):
         while True:
             bill_id = mandatory_field('bill ID: ')
             valid_ids = [str(bill[2]) for bill in rows]
@@ -135,34 +130,34 @@ class CRUDBill:
                 break
 
             print(f"\033[31m❌ Error: ID {bill_id} is not in the search results above. Please choose a visible ID.\033[0m")
-            continue
 
         query_update_status = '''UPDATE bills
                                  SET payment_status = 'Failed'
-                                 WHERE bill_id = %s'''
+                                 WHERE bill_id = :bill_id'''
 
-        params = (bill_id,)
+        
+        params = {"bill_id": bill_id}
 
-        execute_db_action(cursor, query_update_status, params, 'update')
-        print('Bill sucessfully cancelled.')
+        execute_db_action(conn, query_update_status, params, 'update')
+        print('Bill successfully cancelled.')
 
 def main(conn):
-
-    cursor = conn.cursor()
-
+    
     while True:
-        subprocess.run(["clear"])
 
-        rows = CRUDBill.get_bill(cursor)
+        subprocess.run(["clear"])
+        rows = CRUDBill.get_bill(conn)
 
         option = menu_details.main_menu(menu_details.bill_menu_lines)
         try:
             if option == '1': #Print Bill
                 print("Printing Patient's Bill...")
-                CRUDBill.print_bill(cursor, rows)
+                CRUDBill.print_bill(conn, rows)
+                conn.commit() # 
             elif option == '2': #Cancel Bill
                 print("Cancelling Patient's Bill...")
-                CRUDBill.cancel_bill(cursor, rows)
+                CRUDBill.cancel_bill(conn, rows)
+                conn.commit() # 
             elif option == '3': #Back to main menu
                 print('Returning to the main menu...')
                 break
@@ -172,8 +167,7 @@ def main(conn):
             input("\nPress Enter to continue...")
         except Exception as e:
             print(f"An error occurred: {e}")
-            if conn.is_connected():
+            
+            if not conn.closed:
                 conn.rollback()
             input("\nPress Enter to continue...")
-        
-

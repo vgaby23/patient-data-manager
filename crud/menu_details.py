@@ -1,5 +1,4 @@
-import subprocess
-from dotenv import load_dotenv, set_key
+from dotenv import load_dotenv
 import os
 
 load_dotenv()
@@ -161,15 +160,12 @@ analytics_menu_lines = [
         " ",
         "=" * menu_width,
         " ",
-        "1 - Patient Demography",
-        "2 - Bill & Payments",
-        "3 - Appointments Statistics",
-        "4 - Overview",
-        "5 - Back to main menu",
+        "1 - Operational & Scheduling",
+        "2 - Financial & Revenue",
+        "3 - Patient Demographics",
+        "4 - Back to main menu",
         " "
-    ]
-
-
+        ]
 
 def print_menu_line(sentence):
     print(f"║{sentence:^{menu_width}}║")
